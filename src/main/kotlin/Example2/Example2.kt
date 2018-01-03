@@ -1,5 +1,4 @@
-package Example3
-
+package Example2
 
 import org.ojalgo.optimisation.ExpressionsBasedModel
 import org.ojalgo.optimisation.Variable
@@ -33,9 +32,6 @@ fun main(args: Array<String>) {
             set(it.occupied, 1)
         }
     }
-
-    // A must be after D
-
 
 
     model.minimise().run(::println)
