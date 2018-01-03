@@ -30,7 +30,7 @@ fun main(args: Array<String>) {
     }
 }
 
-enum class Letter{
+enum class Letter {
     A,
     B,
     C,
@@ -87,7 +87,3 @@ data class Slot(val letter: Letter, val number: Number) {
     }
     override fun toString() = "$letter$number: ${occupied?.value?.toInt()}"
 }
-
-fun <T> List<T>.rollingBatches(batchSize: Int) = (0..size).asSequence().map { i ->
-    subList(i, (i + batchSize).let { if (it > size) size else it })
-}.filter { it.size == batchSize }
