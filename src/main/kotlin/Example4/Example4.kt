@@ -15,9 +15,10 @@ fun variable() = Variable(variableId.incrementAndGet().toString().let { "Variabl
 fun addExpression() = funcId.incrementAndGet().let { "Func$it"}.let { model.addExpression(it) }
 
 
-val letterCount = ('A'..'Z').count()
-val numberCount = 50
-val maxContiguousBlocks = 3
+val letterCount = 9
+val numberCount = 18
+val minContiguousBlocks = 2
+val maxContiguousBlocks = 4
 
 fun main(args: Array<String>) {
 
@@ -53,17 +54,34 @@ class Letter(val value: String, val slotsNeeded: Int = 1) {
 
     fun addConstraints() {
 
-        // R_x = 1_A + 2_B + ...
+        // Letter must be assigned once
+        addExpression().level(1).apply {
+            slots.forEach { set(it.occupied,  1) }
+        }
+
+        // R_x = 1_A + 2_A + ...
         addExpression().level(0).apply {
 
             set(cumulativeState, -1)
 
             slots.forEach {
-                set(it.occupied, 1)
+                set(it.occupied, slotsNeeded)
             }
         }
 
-        addExpression().level(slotsNeeded).set(cumulativeState, 1)
+        // contiguous groupings
+
+        /*slots.rollingBatches(slotsNeeded).forEach { batch ->
+            val start = batch.first()
+
+            addExpression().lower(0).apply {
+                batch.forEach {
+                    set(it.number.cumulativeState, 1)
+                }
+
+                set(start.occupied,-1 * slotsNeeded)
+            }
+        }*/
     }
 
     override fun toString() = value
@@ -73,7 +91,7 @@ class Letter(val value: String, val slotsNeeded: Int = 1) {
         val all = ('A'..'Z').asSequence()
                 .take(letterCount)
                 .map { it.toString() }
-                .map { Letter(it, ThreadLocalRandom.current().nextInt(1,maxContiguousBlocks+1)) }
+                .map { Letter(it, ThreadLocalRandom.current().nextInt(minContiguousBlocks, maxContiguousBlocks + 1)) }
                 .toList()
 
 
@@ -92,14 +110,14 @@ class Number(val value: Int)  {
 
     fun addConstraints() {
 
-        // R_x = A_x + B_x + ...
-        addExpression().level(0).apply {
-
-            set(cumulativeState, -1)
+        // R_x >= A_x + B_x + ...
+        addExpression().upper(0).apply {
 
             slots.forEach {
                 set(it.occupied, 1)
             }
+
+            set(cumulativeState, -1)
         }
     }
 
