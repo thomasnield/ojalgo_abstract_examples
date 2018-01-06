@@ -8,16 +8,16 @@ import java.util.concurrent.atomic.AtomicInteger
 // declare ojAlgo Model
 val model = ExpressionsBasedModel()
 
-// custom DSL for Example3.getModel expression inputs, eliminate naming and adding
+// custom DSL for expression inputs, eliminate naming and adding
 val funcId = AtomicInteger(0)
 val variableId = AtomicInteger(0)
 fun variable() = Variable(variableId.incrementAndGet().toString().let { "Variable$it" }).apply(model::addVariable)
 fun addExpression() = funcId.incrementAndGet().let { "Func$it"}.let { model.addExpression(it) }
 
 
-val letterCount = 10
+val letterCount = 20
 val numberCount = 100
-val maxContiguousBlocks = 4
+val maxContiguousBlocks = 2
 
 fun main(args: Array<String>) {
 
@@ -25,6 +25,11 @@ fun main(args: Array<String>) {
     Number.all.forEach { it.addConstraints() }
 
     model.countVariables().run { println("$this variables") }
+
+    model.options.run {
+        iterations_suffice = 1
+        mip_gap = 0.0
+    }
 
     model.minimise().run(::println)
 
