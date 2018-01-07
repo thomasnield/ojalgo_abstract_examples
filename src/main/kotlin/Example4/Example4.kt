@@ -16,9 +16,10 @@ fun addExpression() = funcId.incrementAndGet().let { "Func$it"}.let { model.addE
 
 
 val letterCount = 9
-val numberCount = 18
+val numberCount = 45
+
 val minContiguousBlocks = 2
-val maxContiguousBlocks = 4
+val maxContiguousBlocks = 6
 
 fun main(args: Array<String>) {
 
@@ -27,19 +28,15 @@ fun main(args: Array<String>) {
 
     model.countVariables().run { println("$this variables") }
 
-    model.options.run {
-        iterations_suffice = 1
-        mip_gap = 0.0
-    }
 
     model.minimise().run(::println)
 
-    Letter.all.joinToString(prefix = "   ", separator = "   ").run(::println)
-    Letter.all.map { it.slotsNeeded }.joinToString(prefix = "   ", separator = "   ").run(::println)
+    Letter.all.joinToString(prefix = "\t", separator = "\t").run(::println)
+    Letter.all.map { it.slotsNeeded }.joinToString(prefix = "\t", separator = "\t").run(::println)
 
     Number.all.forEach { n ->
         Letter.all.asSequence().map { l -> l.slots.first { it.number == n }.occupied.value.toInt() }
-                .joinToString(prefix = "$n  ", separator = "   ").run { println(this) }
+                .joinToString(prefix = "$n  ", separator = "\t").run { println(this) }
     }
 }
 
@@ -56,7 +53,23 @@ class Letter(val value: String, val slotsNeeded: Int = 1) {
             slots.forEach { set(it.occupied,  1) }
         }
 
+        //handle recurrences
+        if (slotsNeeded > 1) {
+            slots.rollingBatches(slotsNeeded).forEach { batch ->
 
+                val first = batch.first()
+
+                addExpression().upper(0).apply {
+
+                    batch.asSequence().flatMap { it.number.slots.asSequence() }
+                            .forEach {
+                                set(it.occupied, 1)
+                            }
+
+                    set(first.number.cumulativeState, -1)
+                }
+            }
+        }
     }
 
     override fun toString() = value
@@ -79,14 +92,15 @@ class Number(val value: Int)  {
         Slot.all.filter { it.number == this }
     }
 
-    // R_x
+    // b_x
     val cumulativeState = variable().lower(0).upper(1)
 
 
     fun addConstraints() {
 
-        // R_x >= A_x + B_x + ...
-        addExpression().upper(0).apply {
+        /*
+        // b_x = A_x + B_x + ...
+        addExpression().level(0).apply {
 
             slots.forEach {
                 set(it.occupied, 1)
@@ -94,21 +108,7 @@ class Number(val value: Int)  {
 
             set(cumulativeState, -1)
         }
-
-
-        // contiguous groupings
-
-        /*slots.rollingBatches(slotsNeeded).forEach { batch ->
-            val start = batch.first()
-
-            addExpression().lower(0).apply {
-                batch.forEach {
-                    set(it.number.cumulativeState, 1)
-                }
-
-                set(start.occupied,-1 * slotsNeeded)
-            }
-        }*/
+        */
     }
 
     companion object {
@@ -117,7 +117,7 @@ class Number(val value: Int)  {
                 .toList()
     }
 
-    override fun toString() = value.toString()
+    override fun toString() = value.toString().let { if (it.length == 1) "$it " else it }
 }
 
 data class Slot(val letter: Letter, val number: Number) {
