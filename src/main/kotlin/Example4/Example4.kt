@@ -49,9 +49,6 @@ class Letter(val value: String, val slotsNeeded: Int = 1) {
         Slot.all.filter { it.letter == this }.sortedBy { it.number.value }
     }
 
-    // R_x
-    val cumulativeState = variable().lower(0)
-
     fun addConstraints() {
 
         // Letter must be assigned once
@@ -59,29 +56,7 @@ class Letter(val value: String, val slotsNeeded: Int = 1) {
             slots.forEach { set(it.occupied,  1) }
         }
 
-        // R_x = 1_A + 2_A + ...
-        addExpression().level(0).apply {
 
-            set(cumulativeState, -1)
-
-            slots.forEach {
-                set(it.occupied, slotsNeeded)
-            }
-        }
-
-        // contiguous groupings
-
-        /*slots.rollingBatches(slotsNeeded).forEach { batch ->
-            val start = batch.first()
-
-            addExpression().lower(0).apply {
-                batch.forEach {
-                    set(it.number.cumulativeState, 1)
-                }
-
-                set(start.occupied,-1 * slotsNeeded)
-            }
-        }*/
     }
 
     override fun toString() = value
@@ -119,6 +94,21 @@ class Number(val value: Int)  {
 
             set(cumulativeState, -1)
         }
+
+
+        // contiguous groupings
+
+        /*slots.rollingBatches(slotsNeeded).forEach { batch ->
+            val start = batch.first()
+
+            addExpression().lower(0).apply {
+                batch.forEach {
+                    set(it.number.cumulativeState, 1)
+                }
+
+                set(start.occupied,-1 * slotsNeeded)
+            }
+        }*/
     }
 
     companion object {
