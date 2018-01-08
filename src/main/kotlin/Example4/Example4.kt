@@ -16,10 +16,10 @@ fun addExpression() = funcId.incrementAndGet().let { "Func$it"}.let { model.addE
 
 
 val letterCount = 9
-val numberCount = 45
+val numberCount = 36
 
-val minContiguousBlocks = 2
-val maxContiguousBlocks = 6
+val minContiguousBlocks = 4
+val maxContiguousBlocks = 4
 
 fun main(args: Array<String>) {
 
@@ -69,6 +69,15 @@ class Letter(val value: String, val slotsNeeded: Int = 1) {
                     set(first.number.cumulativeState, -1)
                 }
             }
+        }
+
+        //prevent scheduling at end of window
+        // all slots must sum to 0 in region smaller than slots needed
+        addExpression().level(0).apply {
+            slots.takeLast(slotsNeeded - 1)
+                    .forEach {
+                        set(it.occupied, 1)
+                    }
         }
     }
 
