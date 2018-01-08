@@ -2,6 +2,7 @@ package Example4
 
 import org.ojalgo.optimisation.ExpressionsBasedModel
 import org.ojalgo.optimisation.Variable
+import org.ojalgo.optimisation.integer.IntegerSolver
 import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -16,7 +17,7 @@ fun addExpression() = funcId.incrementAndGet().let { "Func$it"}.let { model.addE
 
 
 val letterCount = 9
-val numberCount = 36
+val numberCount = 480
 
 val minContiguousBlocks = 4
 val maxContiguousBlocks = 4
@@ -28,6 +29,7 @@ fun main(args: Array<String>) {
 
     model.countVariables().run { println("$this variables") }
 
+    model.options.debug(IntegerSolver::class.java)
 
     model.minimise().run(::println)
 
@@ -107,17 +109,11 @@ class Number(val value: Int)  {
 
     fun addConstraints() {
 
-        /*
-        // b_x = A_x + B_x + ...
-        addExpression().level(0).apply {
-
-            slots.forEach {
-                set(it.occupied, 1)
-            }
-
-            set(cumulativeState, -1)
+        // Number can only be assigned once
+        addExpression().upper(1).apply {
+            slots.forEach { set(it.occupied,  1) }
         }
-        */
+
     }
 
     companion object {
