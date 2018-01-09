@@ -17,10 +17,12 @@ fun addExpression() = funcId.incrementAndGet().let { "Func$it"}.let { model.addE
 
 
 val letterCount = 9
-val numberCount = 480
 
-val minContiguousBlocks = 4
+val minContiguousBlocks = 2
 val maxContiguousBlocks = 4
+
+val numberCount = 360
+
 
 fun main(args: Array<String>) {
 
@@ -48,6 +50,14 @@ class Letter(val value: String, val slotsNeeded: Int = 1) {
         Slot.all.filter { it.letter == this }.sortedBy { it.number.value }
     }
 
+    val batches by lazy {
+        slots.rollingBatches(slotsNeeded)
+    }
+
+    fun slotsFor(number: Number) = batches.asSequence()
+            .filter { it.any { it.number == number } }
+            .map { it.first() }
+
     fun addConstraints() {
 
         // Letter must be assigned once
@@ -55,32 +65,12 @@ class Letter(val value: String, val slotsNeeded: Int = 1) {
             slots.forEach { set(it.occupied,  1) }
         }
 
-        //handle recurrences
-        if (slotsNeeded > 1) {
-            slots.rollingBatches(slotsNeeded).forEach { batch ->
-
-                val first = batch.first()
-
-                addExpression().upper(0).apply {
-
-                    batch.asSequence().flatMap { it.number.slots.asSequence() }
-                            .forEach {
-                                set(it.occupied, 1)
-                            }
-
-                    set(first.number.cumulativeState, -1)
-                }
-            }
-        }
-
         //prevent scheduling at end of window
         // all slots must sum to 0 in region smaller than slots needed
-        addExpression().level(0).apply {
-            slots.takeLast(slotsNeeded - 1)
-                    .forEach {
-                        set(it.occupied, 1)
-                    }
-        }
+        slots.takeLast(slotsNeeded - 1)
+                .forEach {
+                    it.occupied.level(0)
+                }
     }
 
     override fun toString() = value
@@ -103,17 +93,15 @@ class Number(val value: Int)  {
         Slot.all.filter { it.number == this }
     }
 
-    // b_x
-    val cumulativeState = variable().lower(0).upper(1)
-
-
     fun addConstraints() {
 
-        // Number can only be assigned once
-        addExpression().upper(1).apply {
-            slots.forEach { set(it.occupied,  1) }
-        }
+        addExpression().lower(0).upper(1).apply {
+            Letter.all.asSequence().flatMap { it.slotsFor(this@Number) }
+                    .forEach {
+                        set(it.occupied, 1)
+                    }
 
+        }
     }
 
     companion object {
