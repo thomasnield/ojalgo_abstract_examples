@@ -21,7 +21,7 @@ val letterCount = 9
 val minContiguousBlocks = 2
 val maxContiguousBlocks = 4
 
-val numberCount = 360
+val numberCount = 36
 
 
 fun main(args: Array<String>) {
@@ -97,6 +97,9 @@ class Number(val value: Int)  {
 
         addExpression().lower(0).upper(1).apply {
             Letter.all.asSequence().flatMap { it.slotsFor(this@Number) }
+                    .toList().apply {
+                        //println("${this@Number.value}-$this")
+                    }
                     .forEach {
                         set(it.occupied, 1)
                     }
