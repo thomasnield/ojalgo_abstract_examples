@@ -16,12 +16,12 @@ fun variable() = Variable(variableId.incrementAndGet().toString().let { "Variabl
 fun addExpression() = funcId.incrementAndGet().let { "Func$it"}.let { model.addExpression(it) }
 
 
-val letterCount = 9
+val letterCount = 20
 
 val minContiguousBlocks = 2
 val maxContiguousBlocks = 4
 
-val numberCount = 36
+val numberCount = 70
 
 
 fun main(args: Array<String>) {
