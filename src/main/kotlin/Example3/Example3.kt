@@ -74,24 +74,23 @@ enum class Letter(val slotsNeeded: Int = 1) {
         // Where xi is slot binaries, S is number of slots needed, and b is shared binary across all groups
         if (slotsNeeded > 1) {
 
-            //val allGroupSlots = addExpression().level(1)
+            val allGroupSlots = model.addExpression().level(1)
 
             slots.rollingBatches(slotsNeeded).forEach { group ->
 
-               /* val slotForGroup = variable().binary()
+               val slotForGroup = variable().binary()
 
-                allGroupSlots.set(slotForGroup, 1)*/
+                allGroupSlots.set(slotForGroup, 1)
 
-                model.addSpecialOrderedSet(group.map { it.occupied }, 0, 4) //? Not sure how to map below expression here?
-
-                /*
-                addExpression().lower(0).apply {
+                val expr =  model.addExpression().lower(0).apply {
                     group.forEach {
                         set(it.occupied,1)
                     }
                     set(slotForGroup, -1 * slotsNeeded)
                 }
-                */
+
+                model.addSpecialOrderedSet(group.map { it.occupied }, slotsNeeded, allGroupSlots) //? Not sure how to map below expression here?
+
             }
         }
     }
